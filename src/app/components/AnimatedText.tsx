@@ -7,7 +7,7 @@ type AnimationType = "wave" | "fadeUp" | "typewriter" | "bounce";
 interface AnimatedTextProps {
   text: string;
   className?: string;
-  tag?: keyof JSX.IntrinsicElements;
+  tag?: keyof React.JSX.IntrinsicElements;
   /** ms before first character appears */
   delay?: number;
   /** ms between each word */
