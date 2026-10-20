@@ -80,24 +80,45 @@ export default function Home() {
     resize();
     window.addEventListener("resize", resize);
 
-    const colors = ["#f759ab", "#ff85c2", "#ffd666", "#ffadd2", "#ff99cc"];
+    const palettes = [
+      ["#ffe4ef", "#ffb7d0"],
+      ["#fff0f5", "#ffc0d9"],
+      ["#ffd1e3", "#ff9ec4"],
+      ["#fff5f9", "#ffcce0"],
+    ];
     const createPetal = () => ({
       x: Math.random() * canvas.width,
-      y: -20,
-      size: Math.random() * 8 + 4,
-      speedY: Math.random() * 1.5 + 0.5,
-      speedX: (Math.random() - 0.5) * 1.5,
+      y: -30,
+      size: Math.random() * 7 + 7,
+      speedY: Math.random() * 1 + 0.6,
+      swayAmp: Math.random() * 1.2 + 0.4,
+      swaySpeed: Math.random() * 0.02 + 0.01,
+      phase: Math.random() * Math.PI * 2,
       rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * 3,
-      opacity: Math.random() * 0.6 + 0.3,
-      color: colors[Math.floor(Math.random() * colors.length)],
+      rotationSpeed: (Math.random() - 0.5) * 2,
+      flip: Math.random() * Math.PI * 2,
+      flipSpeed: Math.random() * 0.04 + 0.02,
+      opacity: Math.random() * 0.35 + 0.6,
+      palette: palettes[Math.floor(Math.random() * palettes.length)],
     });
 
-    const petals = Array.from({ length: 30 }, () => {
+    const count = window.innerWidth < 768 ? 25 : 45;
+    const petals = Array.from({ length: count }, () => {
       const p = createPetal();
       p.y = Math.random() * canvas.height;
       return p;
     });
+
+    // Sakura petal: rounded body with a small notch at the tip
+    const drawPetal = (s: number) => {
+      ctx.beginPath();
+      ctx.moveTo(0, s);
+      ctx.bezierCurveTo(-s * 0.9, s * 0.4, -s * 0.8, -s * 0.6, -s * 0.2, -s);
+      ctx.lineTo(0, -s * 0.75);
+      ctx.lineTo(s * 0.2, -s);
+      ctx.bezierCurveTo(s * 0.8, -s * 0.6, s * 0.9, s * 0.4, 0, s);
+      ctx.closePath();
+    };
 
     let animId: number;
     const draw = () => {
@@ -106,16 +127,26 @@ export default function Home() {
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.scale(Math.cos(p.flip), 1); // 3D flip
         ctx.globalAlpha = p.opacity;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, p.size, p.size * 0.6, 0, 0, Math.PI * 2);
+        const g = ctx.createLinearGradient(0, -p.size, 0, p.size);
+        g.addColorStop(0, p.palette[1]);
+        g.addColorStop(1, p.palette[0]);
+        ctx.fillStyle = g;
+        ctx.shadowColor = "rgba(255, 130, 180, 0.35)";
+        ctx.shadowBlur = 4;
+        drawPetal(p.size);
         ctx.fill();
         ctx.restore();
+
+        p.phase += p.swaySpeed;
         p.y += p.speedY;
-        p.x += p.speedX;
+        p.x += Math.sin(p.phase) * p.swayAmp + 0.3;
         p.rotation += p.rotationSpeed;
-        if (p.y > canvas.height + 20) petals[i] = createPetal();
+        p.flip += p.flipSpeed;
+        if (p.y > canvas.height + 30 || p.x > canvas.width + 30) {
+          petals[i] = createPetal();
+        }
       });
       animId = requestAnimationFrame(draw);
     };
@@ -186,16 +217,6 @@ export default function Home() {
         <div className="section-header reveal">
           <span className="section-tag">💝 Những Lời Chúc</span>
 
-          <h2 className="section-title">
-            <AnimatedText
-              text="Từ Trái Tim Gửi Đến Bạn"
-              animation="wave"
-              stagger={90}
-              delay={100}
-              style={{ display: "block" }}
-            />
-          </h2>
-
           <AnimatedText
             tag="p"
             text="Nhân ngày 20 tháng 10, xin gửi đến tất cả những người phụ nữ tuyệt vời những lời chúc tốt đẹp và yêu thương nhất."
@@ -257,19 +278,6 @@ export default function Home() {
 
       {/* ====== GALLERY SECTION ====== */}
       <section className="gallery-section">
-        <div className="section-header reveal">
-          <span className="section-tag">🌺 Vẻ Đẹp Phụ Nữ</span>
-          <h2 className="section-title">
-            <AnimatedText
-              text="Sắc Hoa Rực Rỡ Như Người"
-              animation="wave"
-              stagger={85}
-              delay={100}
-              style={{ display: "block" }}
-            />
-          </h2>
-        </div>
-
         <div className="flowers-showcase reveal">
           <Image
             src="/flowers.jpg"
